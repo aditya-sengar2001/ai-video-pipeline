@@ -5,6 +5,8 @@ import os
 import requests
 from moviepy.editor import *
 from dotenv import load_dotenv
+from utils import fetch_with_retry
+
 
 load_dotenv()
 
@@ -34,9 +36,14 @@ asyncio.run(voice())
 print("Voice done")
 
 # Download images
-headers = {"Authorization": os.getenv("PEXELS_KEY")}
-res = requests.get(f"https://api.pexels.com/v1/search?query={topic}&per_page=6", headers=headers)
-data = res.json()
+url = f"https://api.pexels.com/v1/search?query={topic}&per_page=6"
+
+data = fetch_with_retry(url)
+
+if data is None:
+    print("Pexels API failed. Exiting safely.")
+    exit()
+
 
 imgs = []
 for i,p in enumerate(data["photos"]):
